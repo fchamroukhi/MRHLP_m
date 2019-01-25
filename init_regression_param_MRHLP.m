@@ -1,4 +1,4 @@
-function param = init_regression_param_MRHLP(X, y, K, type_variance, try_EM)
+function model = init_regression_param_MRHLP(X, y, K, type_variance, try_EM)
 % function param = init_regression_param(X, y, K, type_variance, try_EM)
 % initializes the regressions parameters for the MRHLP model: the
 % regressions coefficients vector and the variance, for each component.
@@ -12,8 +12,7 @@ function param = init_regression_param_MRHLP(X, y, K, type_variance, try_EM)
 % Outputs :
 %         param : initial regression parameters: structure with the fields:
 %         1. betak : Matrix of K vectors of regression coeffcients: dim = [(p+1)x K]
-%         2. sigma: the variance matrix (if the model is homoskedastic)
-%            sigma: the variance of earch regime (variance of y given z=k) sigma{k} = sigma^2_k: cector of dimension K
+%         2. sigmak: the variance of earch regime (variance of y given z=k) sigma{k} = sigma^2_k: cector of dimension K
 %
 %
 %
@@ -35,14 +34,14 @@ if  try_EM ==1% uniform segmentation into K contiguous segments, and then a regr
     for k=1:K
         yk = y((k-1)*zi+1:k*zi, :);
         Xk = X((k-1)*zi+1:k*zi,:);
-        param.betak{k} = inv(Xk'*Xk)*Xk'*yk;%regress(yk,Xk); % for a use in octave, where regress doesnt exist
-        muk = Xk*param.betak{k};
+        model.betak{k} = inv(Xk'*Xk)*Xk'*yk;%regress(yk,Xk); % for a use in octave, where regress doesnt exist
+        muk = Xk*model.betak{k};
         sk = (yk-muk)'*(yk-muk);
         if homoskedastic
             s = s+sk;
-            param.sigma = s/m;%cov(y);
+            model.sigmak = s/m;%cov(y);
         else
-            param.sigma{k} = sk/length(yk);% sk/length(yk);
+            model.sigmak{k} = sk/length(yk);% sk/length(yk);
         end
     end
     
@@ -65,25 +64,20 @@ else % random segmentation into contiguous segments, and then a regression
         j = tk_init(k+1);
         yk = y(i:j, :);%y((k-1)*zi+1:k*zi, :);
         Xk = X(i:j,:);%X((k-1)*zi+1:k*zi,:);
-        param.betak{k} = inv(Xk'*Xk)*Xk'*yk;%regress(yk,Xk); % for a use in octave, where regress doesnt exist
+        model.betak{k} = inv(Xk'*Xk)*Xk'*yk;%regress(yk,Xk); % for a use in octave, where regress doesnt exist
         
-        muk = Xk*param.betak{k};
+        muk = Xk*model.betak{k};
         sk= (yk-muk)'*(yk-muk);
         if homoskedastic
             s = s+sk;
-            param.sigma = s/m;%1;%var(y);
+            model.sigmak = s/m;%1;%var(y);
         else
-            param.sigma{k} =  sk/length(yk);
+            model.sigmak{k} =  sk/length(yk);
         end
     end
     
     
 end
-% param.betak{1}
-% param.betak{4}
-% param.sigma{1}
-% param.sigma{4}
-
 end
 
 

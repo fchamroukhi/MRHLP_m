@@ -79,7 +79,7 @@ function mrhlp = learn_MRHLP_EM(x, y, K, p, dim_w, type_variance, total_EM_tries
 % 	note = {},
 % 	url  = {https://chamroukhi.com/papers/chamroukhi_et_al_neucomp2013b.pdf}
 % 	}
-%
+% 
 % @article{Chamroukhi-FDA-2018,
 %  	Journal = {Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery},
 %  	Author = {Faicel Chamroukhi and Hien D. Nguyen},
@@ -90,7 +90,7 @@ function mrhlp = learn_MRHLP_EM(x, y, K, p, dim_w, type_variance, total_EM_tries
 %  	Month = {to appear},
 %  	url =  {https://chamroukhi.com/papers/MBCC-FDA.pdf}
 %     }
-%
+% 
 % @article{chamroukhi_et_al_NN2009,
 % 	Address = {Oxford, UK, UK},
 % 	Author = {Chamroukhi, F. and Sam\'{e}, A. and Govaert, G. and Aknin, P.},
@@ -105,7 +105,7 @@ function mrhlp = learn_MRHLP_EM(x, y, K, p, dim_w, type_variance, total_EM_tries
 % 	Year = {2009},
 % 	url  = {https://chamroukhi.users.lmno.cnrs.fr/papers/Chamroukhi_Neural_Networks_2009.pdf}
 % 	}
-%
+% 
 %
 %
 % Faicel CHAMROUKHI
@@ -156,9 +156,9 @@ while (nb_good_try < total_EM_tries)
     else
         W0 = rand(q+1,K-1);
     end
-    model.wk = W0;
+    mdel.wk = W0;
     %   2. Initialization of betak and sigma2k (from one curve)
-    model = init_regression_param_MRHLP(XBeta, y, K, type_variance, try_EM);
+    param = init_regression_param_MRHLP(XBeta, y, K, type_variance, try_EM);
     
     %%%
     iter = 0;
@@ -167,33 +167,42 @@ while (nb_good_try < total_EM_tries)
     top=0;
     Winit = W0;%
     %% EM %%%%
-    while ~converge && ~isempty(model) && (iter< max_iter_EM)
+    while ~converge && ~isempty(param) && (iter< max_iter_EM)
         %% E-Step
-        piik = logit_model(Winit,Xw);
+        param.piik = logit_model(Winit,Xw);
         
         log_piik_fik =zeros(m,K);
         for k = 1:K
-            muk = XBeta*model.betak{k};
+            muk = XBeta*mdel.betak{k};
             if homoskedastic
-                sigmak =  model.sigmak;
+                sigmak =  mdel.sigmak;
             else
-                sigmak = model.sigmak{k};
+                sigmak = mdel.sigmak{k};
             end
-            z =((y-muk)*inv(sigmak)).*(y-muk);
-            mahalanobis = sum(z,2);
-            denom = (2*pi)^(d/2)*(det(sigmak))^(1/2);
-            
-            log_piik_fik(:,k) = log(piik(:,k))- ones(m,1)*log(denom)- 0.5*mahalanobis;
+                 z =((y-muk)*inv(sigmak)).*(y-muk);
+                 mahalanobis = sum(z,2);
+                 denom = (2*pi)^(d/2)*(det(sigmak))^(1/2);  
+
+                 log_piik_fik(:,k) = log(param.piik(:,k))- ones(m,1)*log(denom)- 0.5*mahalanobis;  
         end
         
         %%log_piik_fik  = min(log_piik_fik,log(realmax));
         log_piik_fik = max(log_piik_fik ,log(realmin));
+        %         piik_fik = exp(log_piik_fik);
+        %         fxi =sum(piik_fik,2);
+        %         log_fxi=log(fxi);
+        %         log_sum_piik_fik = log(sum(piik_fik,2));
+        %         log_tik = log_piik_fik - log_sum_piik_fik*ones(1,K);
+        %         tik = normalize(exp(log_tik),2);
+        %       log_piik_fik = max(log_piik_fik ,log(realmin));
+        %     log_piik_fik = min(log_piik_fik ,log(realmax));
+        
         piik_fik = exp(log_piik_fik);
         fxi = sum(piik_fik,2);
         log_sum_piik_fik = log(sum(piik_fik,2));
-        log_tauik = log_piik_fik - log_sum_piik_fik*ones(1,K);
+        log_tik = log_piik_fik - log_sum_piik_fik*ones(1,K);
         %log_tauik = max(log_tauik ,log(realmin));
-        tauik = normalize(exp(log_tauik),2);
+        tik = normalize(exp(log_tik),2);
         
         %% M-Step
         % Maximization w.r.t betak and sigma2k (the variances)
@@ -201,33 +210,37 @@ while (nb_good_try < total_EM_tries)
         if homoskedastic,  s = 0;   end
         %
         for k=1:K
-            weights = tauik(:,k);% post prob of each component k (dimension nx1)
+            weights = tik(:,k);% post prob of each component k (dimension nx1)
             nk = sum(weights);% expected cardinal numnber of class k
             
             Xwk = XBeta.*(sqrt(weights)*ones(1,p+1));%[m*(p+1)]
             ywk = y.*(sqrt(weights)*ones(1,d));% dimension :(nxd).*(nxd) = (nxd)
             %if rcond(M)<1e-16
             betak = inv(Xwk'*Xwk + 1e-9*eye(p+1))*Xwk'*ywk; % Maximization w.r.t betak
-            model.betak{k}=betak;
+            mdel.betak{k}=betak;
             z = (y-XBeta*betak).*(sqrt(weights)*ones(1,d));
             % Maximisation w.r.t sigma2k (the variances)
             
             sk = z'*z;
             if homoskedastic
                 s = s+sk;
-                model.sigmak = s/m;
+                mdel.sigmak = s/m;
             else
-                model.sigmak{k}=sk/nk;
+                mdel.sigmak{k}=sk/nk;
             end
+            
+            %                                  k
+            %                      mdel.sigmak{k}
+            %             pause
         end
         % Maximization w.r.t W
         % ----------------------------------%
         
         %%  IRLS : Iteratively Reweighted Least Squares (for IRLS, see the IJCNN 2009 paper)
-        res = IRLS(Xw, tauik, Winit, verbose_IRLS);
-        model.wk = res.W;
+        res = IRLS(Xw, tik, Winit, verbose_IRLS);
+        param.piik = res.piik;
+        mdel.wk = res.W;
         Winit = res.W;
-        stats.piik = res.piik;
         
         
         %% End of EM
@@ -258,25 +271,22 @@ while (nb_good_try < total_EM_tries)
     cputime_total = [cputime_total cputime-time];
     
     
-    mrhlp.model = model;
     mrhlp.stats.loglik = loglik;
     mrhlp.stats.stored_loglik = stored_loglik;
-        
-    mrhlp.stats.piik = stats.piik(1:m,:);
-    mrhlp.stats.tauik = tauik(1:m,:);
-    
+    mrhlp.param = param;
     mrhlp.stats.log_piik_fik = log_piik_fik;
     
     %% estimated parameter vector
-    %theta = [model.wk(:); model.betak(:); model.sigmak(:)];
+    theta = [mdel.wk(:); mdel.betak(:); mdel.sigmak(:)];
     
-    %mrhlp.theta = theta;
-
+    mrhlp.theta = theta;
+    % mrhlp.param.piik = param.piik(1:m,:);
+    mrhlp.stats.tik = tik(1:m,:);
     
     if total_EM_tries>1
         fprintf(1,'loglik = %f \n',mrhlp.stats.loglik);
     end
-    if ~isempty(mrhlp.model)
+    if ~isempty(mrhlp.param)
         nb_good_try=nb_good_try+1;
         total_nb_try=0;
         
@@ -299,24 +309,24 @@ mrhlp = best_mrhlp;
 if total_EM_tries>1;   fprintf(1,'best loglik:  %f\n',mrhlp.stats.loglik); end
 
 % % for the best mrhlp
-mrhlp.stats.piik = mrhlp.stats.piik;
-mrhlp.stats.tauik = mrhlp.stats.tauik;
+mrhlp.param.piik = mrhlp.param.piik(1:m,:);
+mrhlp.stats.tik = mrhlp.stats.tik(1:m,:);
 
 %% classsification pour EM : classes = argmax(piik) (here to ensure a convex segmentation of the curve(s)).
-[klas, Zik] = MAP(mrhlp.stats.piik);
+[klas, Zik] = MAP(mrhlp.param.piik);
 
 mrhlp.stats.klas = klas;
 
 % model parammeter vector
-%theta = [model.wk(:); model.betak(:); model.sigmak(:)];
+theta = [mdel.wk(:); mdel.betak(:); mdel.sigmakk(:)];
 
-%mrhlp.theta = theta;
+mrhlp.theta = theta;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for k = 1:K
-    regimesk =  XBeta*mrhlp.model.betak{k};
+    regimesk =  XBeta*mrhlp.param.betak{k};
     mrhlp.stats.polynomials(:,:,k) = regimesk;
-    mrhlp.stats.weighted_polynomials(:,:,k) = (mrhlp.stats.piik(:,k)*ones(1,d)).*regimesk;
+    mrhlp.stats.weighted_polynomials(:,:,k) = (mrhlp.param.piik(:,k)*ones(1,d)).*regimesk;
 end
 mrhlp.stats.Ey =sum(mrhlp.stats.weighted_polynomials,3);%sum over the regimes k
 
@@ -344,8 +354,8 @@ mrhlp.stats.ICL = mrhlp.stats.comp_loglik - (nu*log(m)/2);
 %warning on
 %
 mrhlp.stats.nu = nu;
-mrhlp.stats.design.XBeta = XBeta;
-mrhlp.stats.design.Xw = Xw;
+mrhlp.design.XBeta = XBeta;
+mrhlp.design.Xw = Xw;
 
 
 

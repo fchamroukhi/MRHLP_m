@@ -15,7 +15,7 @@
 % 	note = {},
 % 	url  = {https://chamroukhi.com/papers/chamroukhi_et_al_neucomp2013b.pdf}
 % 	}
-% 
+%
 % @article{Chamroukhi-FDA-2018,
 %  	Journal = {Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery},
 %  	Author = {Faicel Chamroukhi and Hien D. Nguyen},
@@ -26,7 +26,7 @@
 %  	Month = {to appear},
 %  	url =  {https://chamroukhi.com/papers/MBCC-FDA.pdf}
 %     }
-% 
+%
 % @article{chamroukhi_et_al_NN2009,
 % 	Address = {Oxford, UK, UK},
 % 	Author = {Chamroukhi, F. and Sam\'{e}, A. and Govaert, G. and Aknin, P.},
@@ -41,7 +41,7 @@
 % 	Year = {2009},
 % 	url  = {https://chamroukhi.users.lmno.cnrs.fr/papers/Chamroukhi_Neural_Networks_2009.pdf}
 % 	}
-% 
+%
 %
 %
 % by Faicel Chamroukhi (2011)
@@ -62,7 +62,8 @@ q = 1; % dimension of w (ordre of the logistic regression: to be set to 1 for se
 % options
 %type_variance = 'homoskedastic';
 type_variance = 'hetereskedastic';
-nbr_EM_tries = 2;
+nbr_EM_tries = 1;
+
 max_iter_EM = 1500;
 threshold = 1e-6;
 verbose_EM = 1;
@@ -75,16 +76,15 @@ verbose_IRLS = 0;
 %     [-2+randn(100,1); 10+randn(120,1);8+randn(200,1); randn(100,1); 5+randn(150,1)]]
 % n = length(y);
 % x = linspace(0,1,n);
-% 
+%
 
 load simulated_time_series;
-y = [randn(100,1); 7+randn(120,1);4+randn(200,1); -1+randn(100,1); 3.5+randn(150,1)];
-    
+
 mrhlp =  learn_MRHLP_EM(x, y, K, p, q, ...
     type_variance,nbr_EM_tries, max_iter_EM, threshold, verbose_EM, verbose_IRLS);
 
 show_MRHLP_results(x,y, mrhlp)
- 
+
 
 %% real multivariate time series with regime changes
 % an example of human activity acceleration time series
