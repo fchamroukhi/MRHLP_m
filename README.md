@@ -5,6 +5,7 @@ model with a Hidden Logistic Process (MRHLP).
 
 *If you are using this code, please cite the following papers:*
 
+``` 
 @article{Chamroukhi-MRHLP-2013,
 	Author = {F. Chamroukhi and D. Trabelsi and S. Mohammed and L. Oukhellou and Y. Amirat},
 	Journal = {Neurocomputing},
@@ -41,7 +42,7 @@ model with a Hidden Logistic Process (MRHLP).
 	Title = {Time series modeling by a regression approach based on a latent process},
 	Volume = {22},
 	Year = {2009},
-	url  = {https://chamroukhi.users.lmno.cnrs.fr/papers/Chamroukhi_Neural_Networks_2009.pdf}
+	url  = {https://chamroukhi.com/papers/Chamroukhi_Neural_Networks_2009.pdf}
 	}
-
+``` 
 by Faicel Chamroukhi (2011)

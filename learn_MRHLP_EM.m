@@ -103,7 +103,7 @@ function mrhlp = learn_MRHLP_EM(x, y, K, p, dim_w, type_variance, total_EM_tries
 % 	Title = {Time series modeling by a regression approach based on a latent process},
 % 	Volume = {22},
 % 	Year = {2009},
-% 	url  = {https://chamroukhi.users.lmno.cnrs.fr/papers/Chamroukhi_Neural_Networks_2009.pdf}
+% 	url  = {https://chamroukhi.com/papers/Chamroukhi_Neural_Networks_2009.pdf}
 % 	}
 %
 %
